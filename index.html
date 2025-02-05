@@ -12,19 +12,12 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
-        h1 {
-            text-align: center;
-        }
-        label {
-            display: block;
-            margin: 15px 0 5px;
-        }
+        h1 { text-align: center; }
+        label { display: block; margin: 15px 0 5px; }
         input, textarea, select {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
         button {
             padding: 10px;
@@ -34,14 +27,8 @@
             cursor: pointer;
             margin-top: 10px;
             width: 100%;
-            border-radius: 4px;
         }
-        button:hover {
-            background: #218838;
-        }
-        #equipmentNotes {
-            display: none; /* Nascondi inizialmente le note attrezzatura */
-        }
+        button:hover { background: #218838; }
     </style>
 </head>
 <body>
@@ -59,47 +46,42 @@
         <label for="DataPrenotazione">Data Prenotazione:</label>
         <input type="date" id="DataPrenotazione" name="DataPrenotazione" required>
 
-        <label for="OraInizio">Ora Inizio Evento:</label>
+        <label for="OraInizio">Ora Inizio:</label>
         <input type="time" id="OraInizio" name="OraInizio" required>
 
-        <label for="OraFine">Ora Fine Evento:</label>
+        <label for="OraFine">Ora Fine:</label>
         <input type="time" id="OraFine" name="OraFine" required>
 
-        <label for="AttrezzaturaNecessaria">Attrezzatura Necessaria?</label>
+        <label for="AttrezzaturaNecessaria">Attrezzatura Necessaria:</label>
         <select id="AttrezzaturaNecessaria" name="AttrezzaturaNecessaria" required>
             <option value="">Seleziona</option>
             <option value="Sì">Sì</option>
             <option value="No">No</option>
         </select>
 
-        <div id="equipmentNotes">
-            <label for="NoteAttrezzatura">Se sì, specifica cosa:</label>
-            <textarea id="NoteAttrezzatura" name="NoteAttrezzatura" placeholder="Specificare attrezzature necessarie"></textarea>
-        </div>
+        <label for="NoteAttrezzatura">Specifiche Attrezzatura:</label>
+        <textarea id="NoteAttrezzatura" name="NoteAttrezzatura" disabled></textarea>
 
-        <label for="Note">Eventuali Note:</label>
-        <textarea id="Note" name="Note" placeholder="Eventuali note aggiuntive"></textarea>
+        <label for="Note">Note Aggiuntive:</label>
+        <textarea id="Note" name="Note"></textarea>
 
         <button type="submit">Prenota</button>
     </form>
 
     <script>
-        // Abilita/disabilita il campo "Note Attrezzatura" in base alla selezione
-        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function () {
-            const equipmentNotes = document.getElementById('equipmentNotes');
-            if (this.value === 'Sì') {
-                equipmentNotes.style.display = 'block'; // Mostra il campo
-                document.getElementById('NoteAttrezzatura').required = true; // Rende il campo obbligatorio
-            } else {
-                equipmentNotes.style.display = 'none'; // Nasconde il campo
-                document.getElementById('NoteAttrezzatura').value = ''; // Resetta il campo
-                document.getElementById('NoteAttrezzatura').required = false; // Campo non obbligatorio
+        // Gestione campo Note Attrezzatura
+        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
+            const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
+            noteAttrezzatura.disabled = this.value !== 'Sì';
+            if (this.value !== 'Sì') {
+                noteAttrezzatura.value = '';
             }
         });
 
-        // Funzione per inviare i dati al Google Apps Script
+        // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
+            console.log("Inizio invio dati");
 
             const formData = {
                 NomeInsegnante: document.getElementById('NomeInsegnante').value,
@@ -110,32 +92,45 @@
                 OraFine: document.getElementById('OraFine').value,
                 AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
                 NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value,
-                Note: document.getElementById('Note').value,
+                Note: document.getElementById('Note').value
             };
 
-            // Inserisci l'URL della tua Web App di Google Apps Script qui
-            const url = "https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec"; // Assicurati di usare l'URL corretto
+            console.log("Dati del form:", formData);
+
+            // IMPORTANTE: Sostituisci con l'URL del tuo Web App
+            const url = "INSERISCI_QUI_URL_DELLA_TUA_WEB_APP";
+            console.log("URL utilizzato:", url);
 
             try {
+                console.log("Inizio chiamata fetch");
                 const response = await fetch(url, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(formData) // Invia i dati come JSON
+                    body: JSON.stringify(formData)
                 });
+                console.log("Risposta ricevuta:", response);
 
                 if (response.ok) {
                     const result = await response.text();
-                    alert("Prenotazione effettuata con successo! Risposta: " + result);
-                    document.getElementById('reservationForm').reset(); // Resetta il modulo
+                    console.log("Risultato:", result);
+                    const jsonResult = JSON.parse(result);
+                    
+                    if (jsonResult.status === 'success') {
+                        alert("Prenotazione effettuata con successo!");
+                        document.getElementById('reservationForm').reset();
+                    } else {
+                        alert("Errore: " + jsonResult.message);
+                    }
                 } else {
-                    const errorText = await response.text(); // Restituisce il messaggio di errore dal server
+                    const errorText = await response.text();
                     console.error('Errore dal server:', errorText);
                     alert("Errore durante la prenotazione: " + errorText);
                 }
             } catch (error) {
-                console.error('Errore lato client:', error);
+                console.error('Errore dettagliato:', error);
                 alert("Errore di comunicazione. Controlla la tua connessione e riprova.");
             }
         }
