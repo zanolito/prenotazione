@@ -46,10 +46,6 @@
         button:hover {
             background-color: #45a049;
         }
-        .error {
-            color: red;
-            font-size: 0.9em;
-        }
     </style>
 </head>
 <body>
@@ -88,7 +84,6 @@
         <div class="form-group">
             <label for="AttrezzaturaNecessaria">Attrezzatura Necessaria:</label>
             <select id="AttrezzaturaNecessaria" required>
-                <option value="">Seleziona</option>
                 <option value="Sì">Sì</option>
                 <option value="No">No</option>
             </select>
@@ -96,7 +91,7 @@
 
         <div class="form-group">
             <label for="NoteAttrezzatura">Specifiche Attrezzatura:</label>
-            <textarea id="NoteAttrezzatura" rows="3" disabled></textarea>
+            <textarea id="NoteAttrezzatura" rows="3"></textarea>
         </div>
 
         <div class="form-group">
@@ -108,18 +103,9 @@
     </form>
 
     <script>
-        // Gestione campo Note Attrezzatura
-        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
-            const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
-            noteAttrezzatura.disabled = this.value !== 'Sì';
-            if (this.value !== 'Sì') {
-                noteAttrezzatura.value = '';
-            }
-        });
-
-        // Funzione per inviare i dati
+        // Funzione per inviare i dati al server
         async function sendData(event) {
-            event.preventDefault();
+            event.preventDefault(); // Impedisce il comportamento di default del form
 
             const formData = {
                 NomeInsegnante: document.getElementById('NomeInsegnante').value,
@@ -133,37 +119,29 @@
                 Note: document.getElementById('Note').value
             };
 
-            // IMPORTANTE: Sostituisci con l'URL del tuo Web App di Google Apps Script
-            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec';
+            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec'; // Cambia con l'URL del tuo Google Apps Script
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    mode: 'cors',
                     headers: {
-                        'Content-Type': 'text/plain'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 });
 
-                const result = await response.text();
-                console.log('Risposta dal server:', result);
+                const resultText = await response.text();
+                const result = JSON.parse(resultText); // Assumiamo che la risposta sia in JSON
 
-                try {
-                    const jsonResponse = JSON.parse(result);
-                    if (jsonResponse.status === 'success') {
-                        alert('Prenotazione effettuata con successo!');
-                        document.getElementById('reservationForm').reset();
-                    } else {
-                        alert('Errore: ' + jsonResponse.message);
-                    }
-                } catch (e) {
-                    alert('Errore nella risposta del server');
-                    console.error('Errore nel parsing della risposta:', result);
+                if (result.status === 'success') {
+                    alert('Prenotazione effettuata con successo!');
+                    document.getElementById('reservationForm').reset();
+                } else {
+                    alert('Errore: ' + result.message);
                 }
             } catch (error) {
                 console.error('Errore:', error);
-                alert('Errore di comunicazione. Controlla la tua connessione e riprova.');
+                alert('Errore di comunicazione con il server.');
             }
         }
     </script>
