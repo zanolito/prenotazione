@@ -46,6 +46,9 @@
         button:hover {
             background-color: #45a049;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -84,12 +87,12 @@
         <div class="form-group">
             <label for="AttrezzaturaNecessaria">Attrezzatura Necessaria:</label>
             <select id="AttrezzaturaNecessaria" required>
-                <option value="Sì">Sì</option>
                 <option value="No">No</option>
+                <option value="Sì">Sì</option>
             </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group hidden" id="noteAttrezzaturaGroup">
             <label for="NoteAttrezzatura">Specifiche Attrezzatura:</label>
             <textarea id="NoteAttrezzatura" rows="3"></textarea>
         </div>
@@ -103,9 +106,30 @@
     </form>
 
     <script>
+        // Gestione visualizzazione campo Note Attrezzatura
+        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
+            const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
+            const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
+            
+            if (this.value === 'Sì') {
+                noteAttrezzaturaGroup.classList.remove('hidden');
+                noteAttrezzatura.required = true;
+            } else {
+                noteAttrezzaturaGroup.classList.add('hidden');
+                noteAttrezzatura.required = false;
+                noteAttrezzatura.value = '';
+            }
+        });
+
         // Funzione per inviare i dati al server
         async function sendData(event) {
-            event.preventDefault(); // Impedisce il comportamento di default del form
+            event.preventDefault();
+
+            // Mostra un messaggio di caricamento
+            const button = event.target.querySelector('button');
+            const originalButtonText = button.textContent;
+            button.textContent = 'Invio in corso...';
+            button.disabled = true;
 
             const formData = {
                 NomeInsegnante: document.getElementById('NomeInsegnante').value,
@@ -119,29 +143,46 @@
                 Note: document.getElementById('Note').value
             };
 
-            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec'; // Cambia con l'URL del tuo Google Apps Script
+            // Sostituisci con l'URL del tuo Web App di Google Apps Script
+            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec
+
+';
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 });
 
+                console.log('Risposta ricevuta:', response);
                 const resultText = await response.text();
-                const result = JSON.parse(resultText); // Assumiamo che la risposta sia in JSON
+                console.log('Testo della risposta:', resultText);
 
-                if (result.status === 'success') {
-                    alert('Prenotazione effettuata con successo!');
-                    document.getElementById('reservationForm').reset();
-                } else {
-                    alert('Errore: ' + result.message);
+                try {
+                    const result = JSON.parse(resultText);
+                    if (result.status === 'success') {
+                        alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
+                        document.getElementById('reservationForm').reset();
+                        // Nascondi il campo Note Attrezzatura dopo il reset
+                        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
+                    } else {
+                        alert('Errore: ' + (result.message || 'Errore sconosciuto'));
+                    }
+                } catch (e) {
+                    console.error('Errore nel parsing della risposta:', e);
+                    alert('Errore nella comunicazione con il server. Per favore, riprova più tardi.');
                 }
             } catch (error) {
-                console.error('Errore:', error);
-                alert('Errore di comunicazione con il server.');
+                console.error('Errore nella richiesta:', error);
+                alert('Errore di connessione. Verifica la tua connessione internet e riprova.');
+            } finally {
+                // Ripristina il pulsante
+                button.textContent = originalButtonText;
+                button.disabled = false;
             }
         }
     </script>
