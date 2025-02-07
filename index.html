@@ -107,7 +107,6 @@
     </form>
 
     <script>
-        // Gestione visualizzazione campo Note Attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
@@ -122,12 +121,10 @@
             }
         });
 
-        // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
 
             const button = event.target.querySelector('button');
-            const originalButtonText = button.textContent;
             button.textContent = 'Invio in corso...';
             button.disabled = true;
 
@@ -139,44 +136,31 @@
                 OraInizio: document.getElementById('OraInizio').value,
                 OraFine: document.getElementById('OraFine').value,
                 AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
-                NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value,
-                Note: document.getElementById('Note').value
+                NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value || '',
+                Note: document.getElementById('Note').value || ''
             };
 
-            // URL del tuo Web App di Google Apps Script
-            const url = 'https://script.google.com/macros/s/AKfycbzn3YA444W_1lOHyGXE_QlJnv9oMm9-vhD9OjydabuI-ZY2aUNsG99DYl1ihNxX7e-0/exec';
+            // Inserisci qui l'URL del tuo Web App di Google Apps Script
+            const url = 'https://script.google.com/macros/s/AKfycbw3yp4KA0uzyMbIzrmTnN9CWz3AilPvfMhfSo4d7Fp5e-B8qTICWAMsfLbI5FdPrAVC/exec';
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify(formData)
                 });
 
-                const resultText = await response.text();
-                console.log('Risposta dal server:', resultText);
-
-                try {
-                    const result = JSON.parse(resultText);
-                    if (result.status === 'success') {
-                        alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
-                        document.getElementById('reservationForm').reset();
-                        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
-                    } else {
-                        alert('Errore: ' + (result.message || 'Errore sconosciuto'));
-                    }
-                } catch (e) {
-                    console.error('Errore nel parsing della risposta:', e);
-                    alert('Errore nella comunicazione con il server. Per favore, riprova più tardi.');
-                }
+                alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
+                document.getElementById('reservationForm').reset();
+                document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
             } catch (error) {
-                console.error('Errore nella richiesta:', error);
-                alert('Errore di connessione. Verifica la tua connessione internet e riprova.');
+                console.error('Errore:', error);
+                alert('Errore di connessione. Riprova più tardi.');
             } finally {
-                button.textContent = originalButtonText;
+                button.textContent = 'Prenota';
                 button.disabled = false;
             }
         }
