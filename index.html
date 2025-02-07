@@ -107,6 +107,7 @@
     </form>
 
     <script>
+        // Gestione visualizzazione campo Note Attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
@@ -121,6 +122,7 @@
             }
         });
 
+        // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
 
@@ -144,21 +146,23 @@
             const url = 'https://script.google.com/macros/s/AKfycbw3yp4KA0uzyMbIzrmTnN9CWz3AilPvfMhfSo4d7Fp5e-B8qTICWAMsfLbI5FdPrAVC/exec';
 
             try {
-                const response = await fetch(url, {
+                await fetch(url, {
+                    redirect: 'follow',
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'text/plain'
+                        'Content-Type': 'text/plain',
                     },
+                    mode: 'no-cors',
                     body: JSON.stringify(formData)
                 });
 
+                // Se arriviamo qui, consideriamo la richiesta riuscita
                 alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
                 document.getElementById('reservationForm').reset();
                 document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
             } catch (error) {
-                console.error('Errore:', error);
-                alert('Errore di connessione. Riprova più tardi.');
+                console.error('Errore durante l\'invio:', error);
+                alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
             } finally {
                 button.textContent = 'Prenota';
                 button.disabled = false;
