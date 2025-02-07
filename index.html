@@ -107,6 +107,7 @@
     </form>
 
     <script>
+        // Gestione visualizzazione campo Note Attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
@@ -121,6 +122,7 @@
             }
         });
 
+        // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
 
@@ -141,22 +143,21 @@
                 Note: document.getElementById('Note').value
             };
 
-            // Inserisci qui l'URL del tuo Web App di Google Apps Script
-            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec';
+            // URL del tuo Web App di Google Apps Script
+            const url = 'https://script.google.com/macros/s/AKfycbzn3YA444W_1lOHyGXE_QlJnv9oMm9-vhD9OjydabuI-ZY2aUNsG99DYl1ihNxX7e-0/exec';
 
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     mode: 'cors',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify(formData)
                 });
 
-                console.log('Risposta ricevuta:', response);
                 const resultText = await response.text();
-                console.log('Testo della risposta:', resultText);
+                console.log('Risposta dal server:', resultText);
 
                 try {
                     const result = JSON.parse(resultText);
