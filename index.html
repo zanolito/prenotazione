@@ -71,7 +71,7 @@
 
         <div class="form-group">
             <label for="DataPrenotazione">Data Prenotazione:</label>
-            <input type="date" id="DataPrenotazione" required>
+            <input type="date" id="DataPrenotazione" required min="">
         </div>
 
         <div class="form-group">
@@ -107,6 +107,12 @@
     </form>
 
     <script>
+        // Imposta la data minima come oggi
+        document.addEventListener("DOMContentLoaded", function() {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("DataPrenotazione").setAttribute("min", today);
+        });
+
         // Gestione visualizzazione campo Note Attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
