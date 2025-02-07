@@ -238,7 +238,8 @@
 
             try {
                 // Inserisci qui l'URL del tuo Web App di Google Apps Script
-                const url = 'https://script.google.com/macros/s/AKfycbx-J_jzVKm3tb6v9-HsXJrXkRhcYpZAokB8jVI1XDB6bA3WgkYwidVlvokgTQDWVcSY/exec';
+                const url = 'https://script.google.com/macros/s/AKfycbx-J_jzVKm3tb6v9-HsXJrXkRhcYpZAokB8jVI1XDB6bA3WgkYwidVlvokgTQDWVcSY/exec?v=' + new Date().getTime();
+console.log('URL utilizzato:', url);
 
                 const response = await fetch(url, {
                     method: 'POST',
