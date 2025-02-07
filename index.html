@@ -107,7 +107,6 @@
     </form>
 
     <script>
-        // Gestione visualizzazione campo Note Attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
@@ -122,11 +121,9 @@
             }
         });
 
-        // Funzione per inviare i dati al server
         async function sendData(event) {
             event.preventDefault();
 
-            // Mostra un messaggio di caricamento
             const button = event.target.querySelector('button');
             const originalButtonText = button.textContent;
             button.textContent = 'Invio in corso...';
@@ -144,10 +141,7 @@
                 Note: document.getElementById('Note').value
             };
 
-            // Sostituisci con l'URL del tuo Web App di Google Apps Script
-            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec
-
-';
+            const url = 'https://script.google.com/macros/s/AKfycbyQqs76_iT8Wgyw8aWgK8uDotffTgAYxeyDc7OnGtizCc_JHcwR5KtVAMI2KiY7OtpK/exec';
 
             try {
                 const response = await fetch(url, {
@@ -168,7 +162,6 @@
                     if (result.status === 'success') {
                         alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
                         document.getElementById('reservationForm').reset();
-                        // Nascondi il campo Note Attrezzatura dopo il reset
                         document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
                     } else {
                         alert('Errore: ' + (result.message || 'Errore sconosciuto'));
@@ -181,7 +174,6 @@
                 console.error('Errore nella richiesta:', error);
                 alert('Errore di connessione. Verifica la tua connessione internet e riprova.');
             } finally {
-                // Ripristina il pulsante
                 button.textContent = originalButtonText;
                 button.disabled = false;
             }
