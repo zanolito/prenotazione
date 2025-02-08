@@ -54,31 +54,42 @@
                         'Accept': 'application/json'
                     }
                 })
-                .then(response => {
-                    console.log("Risposta ricevuta:", response);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(response => {
-                    console.log("Dati ricevuti completi:", response);
-                    
-                    if (response.status === 'success' && Array.isArray(response.data)) {
-                        console.log("Prenotazioni trovate:", response.data);
-                        setBookings(response.data);
-                        setError(null);
-                    } else {
-                        console.error("Struttura dati non valida:", response);
-                        setBookings([]);
-                        setError("Errore nel formato dei dati ricevuti");
-                    }
-                })
-                .catch(error => {
-                    console.error("Errore nel recupero dei dati:", error);
-                    setBookings([]);
-                    setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
-                })
+                // Modifica questa parte nel codice, nella sezione del fetch
+.then(response => {
+    console.log("Risposta ricevuta:", response);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+})
+.then(response => {
+    console.log("Dati ricevuti completi:", response);
+    
+    // Nuovo modo di gestire i dati
+    let bookingsData = [];
+    if (Array.isArray(response)) {
+        // Se response è direttamente un array
+        bookingsData = response;
+    } else if (response.data && Array.isArray(response.data)) {
+        // Se response ha una proprietà data che è un array
+        bookingsData = response.data;
+    } else if (response.status === 'success' && Array.isArray(response.data)) {
+        // Il formato originale che ci aspettavamo
+        bookingsData = response.data;
+    } else {
+        throw new Error("Formato dati non supportato");
+    }
+
+    console.log("Prenotazioni processate:", bookingsData);
+    setBookings(bookingsData);
+    setError(null);
+})
+.catch(error => {
+    console.error("Errore nel recupero dei dati:", error);
+    setBookings([]);
+    setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
+})
+
                 .finally(() => {
                     setLoading(false);
                 });
