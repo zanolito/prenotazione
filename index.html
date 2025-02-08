@@ -280,9 +280,9 @@
         }
 
         function openCalendar() {
-    const currentUrl = window.location.href;
-    const baseUrl = currentUrl.split('?')[0];  // Rimuove eventuali parametri esistenti
-    window.open(baseUrl + '?page=calendar', '_blank');
+    // Usa direttamente l'URL del tuo script Google
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec';
+    window.open(scriptUrl + '?page=calendar', '_blank');
 }
 
 
