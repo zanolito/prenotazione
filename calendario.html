@@ -19,61 +19,38 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // Funzione per gestire la risposta JSONP
-        window.handleGoogleResponse = function(data) {
-            console.log("Dati ricevuti via JSONP:", data);
-            if (Array.isArray(data)) {
-                setBookings(data);
-            }
-        };
-
         function CalendarApp() {
             const [currentDate, setCurrentDate] = React.useState(new Date());
             const [bookings, setBookings] = React.useState([]);
             const [error, setError] = React.useState(null);
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-            // URL del tuo Google Apps Script (assicurati che sia l'URL corretto del deployment)
+            // URL del tuo Google Apps Script
             const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
 
             React.useEffect(() => {
                 console.log("Iniziando il recupero dei dati...");
-                console.log("URL dello script:", scriptUrl);
-
-                fetch(scriptUrl, {
-                    method: 'GET',
-                    mode: 'no-cors',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    console.log("Risposta ricevuta:", response);
-                    if (response.type === 'opaque') {
-                        // Se la risposta è opaque, proviamo con JSONP
-                        const script = document.createElement('script');
-                        script.src = `${scriptUrl}?callback=handleGoogleResponse`;
-                        document.body.appendChild(script);
-                        return null;
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data) {
+                
+                fetch(scriptUrl)
+                    .then(response => {
+                        console.log("Risposta ricevuta:", response);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
                         console.log("Dati ricevuti:", data);
                         if (Array.isArray(data)) {
-                            console.log("Numero di prenotazioni ricevute:", data.length);
                             setBookings(data);
                         } else {
-                            console.error("I dati ricevuti non sono un array:", data);
                             setError("Formato dati non valido");
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error("Errore nel recupero dei dati:", error);
-                    // Non settiamo l'errore qui perché potremmo ricevere i dati via JSONP
-                });
+                    })
+                    .catch(error => {
+                        console.error("Errore nel recupero dei dati:", error);
+                        setError(error.message);
+                    });
             }, []);
 
             const generateDays = () => {
@@ -99,13 +76,7 @@
 
             const getBookingForDate = (date) => {
                 const dateString = date.toISOString().split('T')[0];
-                console.log("Cercando prenotazioni per:", dateString);
-                const dayBookings = bookings.filter(booking => {
-                    console.log("Confronto con prenotazione:", booking.date);
-                    return booking.date === dateString;
-                });
-                console.log("Prenotazioni trovate:", dayBookings);
-                return dayBookings;
+                return bookings.filter(booking => booking.date === dateString);
             };
 
             const changeMonth = (direction) => {
@@ -149,8 +120,8 @@
                             
                             {generateDays().map((date, index) => (
                                 <div key={index} className="bg-white p-2 min-h-[100px] border">
-                                    {date ? (
-                                        <>
+                                    {date && (
+                                        <div>
                                             <div className="font-bold">{date.getDate()}</div>
                                             {getBookingForDate(date).map((booking, i) => (
                                                 <div key={i} className="text-sm p-1 mt-1 bg-purple-100 rounded">
@@ -158,8 +129,8 @@
                                                     <div className="text-purple-600">{booking.reason}</div>
                                                 </div>
                                             ))}
-                                        </>
-                                    ) : null}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
