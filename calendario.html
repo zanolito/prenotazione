@@ -16,27 +16,14 @@
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        .calendar-container {
-            min-height: 100vh;
-            background-color: #f9fafb;
-        }
-    </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // Componenti Lucide che useremo
-        const { ChevronLeft, ChevronRight, Clock, Calendar } = lucide;
+        const { createIcon, Calendar, ChevronLeft, ChevronRight, Clock } = lucide;
 
-        // URL del tuo Google Apps Script (sostituisci con il tuo URL)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCBIenNnaeH8GAB8B1CZ7Mn9MDDhTkg4NjD7swiZrPavm7_qrgHyrbpaGY-VbFtY/exec';
-
-
-        // Componente Calendario
         function CalendarApp() {
             const [events, setEvents] = React.useState([]);
             const [currentDate, setCurrentDate] = React.useState(new Date());
@@ -45,10 +32,9 @@
             const [loading, setLoading] = React.useState(true);
             const [error, setError] = React.useState(null);
 
-            // Array dei giorni della settimana partendo da Lunedì
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfCBIenNnaeH8GAB8B1CZ7Mn9MDDhTkg4NjD7swiZrPavm7_qrgHyrbpaGY-VbFtY/exec';
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-            // Carica i dati dal Google Script
             React.useEffect(() => {
                 fetchEvents();
             }, []);
@@ -59,6 +45,7 @@
                     const response = await fetch(SCRIPT_URL);
                     if (!response.ok) throw new Error('Errore nel caricamento dei dati');
                     const data = await response.json();
+                    console.log('Dati ricevuti:', data); // Per debug
                     setEvents(data);
                     setError(null);
                 } catch (err) {
@@ -69,7 +56,6 @@
                 }
             };
 
-            // Funzione per generare i giorni del mese
             const generateDays = () => {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
@@ -93,21 +79,18 @@
                 return days;
             };
 
-            // Funzione per cambiare mese
             const changeMonth = (direction) => {
                 const newDate = new Date(currentDate);
                 newDate.setMonth(currentDate.getMonth() + direction);
                 setCurrentDate(newDate);
             };
 
-            // Funzione per ottenere gli eventi di una data specifica
             const getEventsForDate = (date) => {
                 if (!date) return [];
                 const dateStr = date.toISOString().split('T')[0];
                 return events.filter(event => event.date === dateStr);
             };
 
-            // Funzione per formattare la data in italiano
             const formatDate = (date) => {
                 if (!date) return '';
                 return date.toLocaleDateString('it-IT', {
@@ -146,165 +129,155 @@
             }
 
             return (
-                // Il resto del codice del calendario rimane uguale a quello che ti ho mostrato prima
-                // ... [inserirò il resto nella prossima risposta per non superare il limite di caratteri]
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+                        <div className="p-6 bg-purple-600 dark:bg-purple-900">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <Calendar className="w-8 h-8 text-white" />
+                                    <h1 className="text-2xl font-bold text-white">
+                                        Calendario Aula Teatro
+                                    </h1>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={() => changeMonth(-1)}
+                                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                                    >
+                                        <ChevronLeft className="w-6 h-6 text-white" />
+                                    </button>
+                                    <h2 className="text-xl font-medium text-white min-w-[200px] text-center">
+                                        {currentDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' })}
+                                    </h2>
+                                    <button 
+                                        onClick={() => changeMonth(1)}
+                                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                                    >
+                                        <ChevronRight className="w-6 h-6 text-white" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="grid grid-cols-7 mb-4">
+                                {weekDays.map(day => (
+                                    <div key={day} className="text-center font-medium text-gray-500 dark:text-gray-400">
+                                        {day}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-7 gap-2">
+                                {generateDays().map((date, idx) => {
+                                    const dayEvents = date ? getEventsForDate(date) : [];
+                                    const isToday = date && 
+                                        date.getDate() === new Date().getDate() && 
+                                        date.getMonth() === new Date().getMonth() && 
+                                        date.getFullYear() === new Date().getFullYear();
+
+                                    return (
+                                        <div 
+                                            key={idx}
+                                            className={`
+                                                min-h-[120px] p-2 rounded-xl border border-gray-100 dark:border-gray-700
+                                                ${!date ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}
+                                                ${isToday ? 'ring-2 ring-purple-500' : ''}
+                                            `}
+                                        >
+                                            {date && (
+                                                <>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className={`
+                                                            text-sm font-medium rounded-full w-8 h-8 flex items-center justify-center
+                                                            ${isToday ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 
+                                                            'text-gray-700 dark:text-gray-300'}
+                                                        `}>
+                                                            {date.getDate()}
+                                                        </span>
+                                                        {dayEvents.length > 0 && (
+                                                            <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-200 rounded-full">
+                                                                {dayEvents.length} {dayEvents.length === 1 ? 'evento' : 'eventi'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        {dayEvents.map((event, eventIdx) => (
+                                                            <button
+                                                                key={eventIdx}
+                                                                onClick={() => {
+                                                                    setSelectedDate(date);
+                                                                    setShowEventDetails(true);
+                                                                }}
+                                                                className="w-full text-left p-2 rounded-lg text-xs bg-purple-50 dark:bg-purple-900/30 
+                                                                    text-purple-700 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-900/50 
+                                                                    transition-colors cursor-pointer"
+                                                            >
+                                                                <div className="font-medium truncate">{event.reason}</div>
+                                                                <div className="flex items-center gap-1 text-purple-500 dark:text-purple-300">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    {event.startTime} - {event.endTime}
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {showEventDetails && selectedDate && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md">
+                                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                                    Eventi del {formatDate(selectedDate)}
+                                </h3>
+                                
+                                <div className="space-y-4">
+                                    {getEventsForDate(selectedDate).map((event, idx) => (
+                                        <div 
+                                            key={idx}
+                                            className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl"
+                                        >
+                                            <h4 className="font-medium text-purple-700 dark:text-purple-200 mb-2">
+                                                {event.reason}
+                                            </h4>
+                                            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300">
+                                                <Clock className="w-4 h-4" />
+                                                <span>{event.startTime} - {event.endTime}</span>
+                                            </div>
+                                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                                <p><strong>Docente:</strong> {event.teacherName}</p>
+                                                {event.equipmentNeeded === "Sì" && (
+                                                    <p><strong>Attrezzatura:</strong> {event.equipmentNotes}</p>
+                                                )}
+                                                {event.notes && event.notes !== "Nessuna" && (
+                                                    <p><strong>Note:</strong> {event.notes}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <button
+                                    onClick={() => setShowEventDetails(false)}
+                                    className="mt-6 w-full py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
+                                        rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                >
+                                    Chiudi
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             );
         }
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8">
-    <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-        {/* Header del calendario */}
-        <div className="p-6 bg-purple-600 dark:bg-purple-900">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Calendar className="w-8 h-8 text-white" />
-                    <h1 className="text-2xl font-bold text-white">
-                        Calendario Aula Teatro
-                    </h1>
-                </div>
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => changeMonth(-1)}
-                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                    >
-                        <ChevronLeft className="w-6 h-6 text-white" />
-                    </button>
-                    <h2 className="text-xl font-medium text-white min-w-[200px] text-center">
-                        {currentDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' })}
-                    </h2>
-                    <button 
-                        onClick={() => changeMonth(1)}
-                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                    >
-                        <ChevronRight className="w-6 h-6 text-white" />
-                    </button>
-                </div>
-            </div>
-        </div>
 
-        {/* Griglia del calendario */}
-        <div className="p-6">
-            {/* Intestazioni dei giorni */}
-            <div className="grid grid-cols-7 mb-4">
-                {weekDays.map(day => (
-                    <div key={day} className="text-center font-medium text-gray-500 dark:text-gray-400">
-                        {day}
-                    </div>
-                ))}
-            </div>
-
-            {/* Giorni del calendario */}
-            <div className="grid grid-cols-7 gap-2">
-                {generateDays().map((date, idx) => {
-                    const dayEvents = date ? getEventsForDate(date) : [];
-                    const isToday = date && 
-                        date.getDate() === new Date().getDate() && 
-                        date.getMonth() === new Date().getMonth() && 
-                        date.getFullYear() === new Date().getFullYear();
-
-                    return (
-                        <div 
-                            key={idx}
-                            className={`
-                                min-h-[120px] p-2 rounded-xl border border-gray-100 dark:border-gray-700
-                                ${!date ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}
-                                ${isToday ? 'ring-2 ring-purple-500' : ''}
-                            `}
-                        >
-                            {date && (
-                                <>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className={`
-                                            text-sm font-medium rounded-full w-8 h-8 flex items-center justify-center
-                                            ${isToday ? 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200' : 
-                                            'text-gray-700 dark:text-gray-300'}
-                                        `}>
-                                            {date.getDate()}
-                                        </span>
-                                        {dayEvents.length > 0 && (
-                                            <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-200 rounded-full">
-                                                {dayEvents.length} {dayEvents.length === 1 ? 'evento' : 'eventi'}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Eventi del giorno */}
-                                    <div className="space-y-1">
-                                        {dayEvents.map((event, eventIdx) => (
-                                            <button
-                                                key={eventIdx}
-                                                onClick={() => {
-                                                    setSelectedDate(date);
-                                                    setShowEventDetails(true);
-                                                }}
-                                                className="w-full text-left p-2 rounded-lg text-xs bg-purple-50 dark:bg-purple-900/30 
-                                                    text-purple-700 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-900/50 
-                                                    transition-colors cursor-pointer"
-                                            >
-                                                <div className="font-medium truncate">{event.reason}</div>
-                                                <div className="flex items-center gap-1 text-purple-500 dark:text-purple-300">
-                                                    <Clock className="w-3 h-3" />
-                                                    {event.startTime} - {event.endTime}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    </div>
-
-    {/* Modale dei dettagli evento */}
-    {showEventDetails && selectedDate && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md">
-                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                    Eventi del {formatDate(selectedDate)}
-                </h3>
-                
-                <div className="space-y-4">
-                    {getEventsForDate(selectedDate).map((event, idx) => (
-                        <div 
-                            key={idx}
-                            className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl"
-                        >
-                            <h4 className="font-medium text-purple-700 dark:text-purple-200 mb-2">
-                                {event.reason}
-                            </h4>
-                            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-300">
-                                <Clock className="w-4 h-4" />
-                                <span>{event.startTime} - {event.endTime}</span>
-                            </div>
-                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                <p><strong>Docente:</strong> {event.teacherName}</p>
-                                {event.equipmentNeeded === "Sì" && (
-                                    <p><strong>Attrezzatura:</strong> {event.equipmentNotes}</p>
-                                )}
-                                {event.notes && event.notes !== "Nessuna" && (
-                                    <p><strong>Note:</strong> {event.notes}</p>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                
-                <button
-                    onClick={() => setShowEventDetails(false)}
-                    className="mt-6 w-full py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 
-                        rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                    Chiudi
-                </button>
-            </div>
-        </div>
-    )}
-</div>
-
-
-        // Rendering dell'applicazione
         ReactDOM.render(<CalendarApp />, document.getElementById('root'));
     </script>
 </body>
