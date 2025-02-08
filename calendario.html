@@ -54,42 +54,53 @@
                         'Accept': 'application/json'
                     }
                 })
-                // Modifica questa parte nel codice, nella sezione del fetch
-.then(response => {
-    console.log("Risposta ricevuta:", response);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-})
-.then(response => {
-    console.log("Dati ricevuti completi:", response);
-    
-    // Nuovo modo di gestire i dati
-    let bookingsData = [];
-    if (Array.isArray(response)) {
-        // Se response è direttamente un array
-        bookingsData = response;
-    } else if (response.data && Array.isArray(response.data)) {
-        // Se response ha una proprietà data che è un array
-        bookingsData = response.data;
-    } else if (response.status === 'success' && Array.isArray(response.data)) {
-        // Il formato originale che ci aspettavamo
-        bookingsData = response.data;
-    } else {
-        throw new Error("Formato dati non supportato");
-    }
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    console.log("Dati ricevuti:", response);
+                    
+                    if (!response) {
+                        throw new Error("Nessun dato ricevuto");
+                    }
 
-    console.log("Prenotazioni processate:", bookingsData);
-    setBookings(bookingsData);
-    setError(null);
-})
-.catch(error => {
-    console.error("Errore nel recupero dei dati:", error);
-    setBookings([]);
-    setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
-})
+                    if (response.error) {
+                        throw new Error(response.error);
+                    }
 
+                    let bookingsData = [];
+                    
+                    if (response.status === 'success' && Array.isArray(response.data)) {
+                        bookingsData = response.data;
+                    } else if (Array.isArray(response)) {
+                        bookingsData = response;
+                    } else if (response.data && Array.isArray(response.data)) {
+                        bookingsData = response.data;
+                    } else {
+                        console.log("Risposta non riconosciuta:", response);
+                        throw new Error("Formato dati non riconosciuto");
+                    }
+
+                    // Validazione dei dati
+                    bookingsData = bookingsData.filter(booking => 
+                        booking && 
+                        booking.date && 
+                        booking.startTime && 
+                        booking.endTime
+                    );
+
+                    console.log("Prenotazioni filtrate:", bookingsData);
+                    setBookings(bookingsData);
+                    setError(null);
+                })
+                .catch(error => {
+                    console.error("Errore nel recupero dei dati:", error);
+                    setBookings([]);
+                    setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
+                })
                 .finally(() => {
                     setLoading(false);
                 });
@@ -117,16 +128,10 @@
             };
 
             const getBookingForDate = (date) => {
+                if (!date || !bookings.length) return [];
+                
                 const dateString = date.toISOString().split('T')[0];
-                console.log("Cercando prenotazioni per data:", dateString);
-                
-                const found = bookings.filter(booking => {
-                    console.log("Confronto con prenotazione:", booking);
-                    return booking.date === dateString;
-                });
-                
-                console.log("Prenotazioni trovate:", found);
-                return found;
+                return bookings.filter(booking => booking.date === dateString);
             };
 
             const changeMonth = (direction) => {
@@ -140,7 +145,7 @@
                 if (time.includes(':')) return time;
                 try {
                     const [hours, minutes] = time.split('.');
-                    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+                    return `${hours.padStart(2, '0')}:${(minutes || '00').padStart(2, '0')}`;
                 } catch(error) {
                     return time;
                 }
