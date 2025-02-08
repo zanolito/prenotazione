@@ -26,7 +26,7 @@
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
             // URL del tuo Google Apps Script esistente
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
+            const scriptUrl = "hhttps://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
 
             React.useEffect(() => {
                 console.log("Iniziando il recupero dei dati...");
@@ -40,20 +40,43 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log("Dati ricevuti:", data);
-                        if (data && data.status === 'success' && Array.isArray(data.data)) {
-                            setBookings(data.data);
-                        } else if (Array.isArray(data)) {
-                            // Fallback per il formato dati esistente
-                            setBookings(data);
+                        console.log("Dati ricevuti grezzi:", data);
+                        console.log("Tipo dei dati ricevuti:", typeof data);
+                        
+                        let prenotazioni = null;
+                        
+                        if (Array.isArray(data)) {
+                            console.log("I dati sono un array diretto");
+                            prenotazioni = data;
+                        } else if (data && Array.isArray(data.data)) {
+                            console.log("I dati sono nell'oggetto data.data");
+                            prenotazioni = data.data;
+                        } else if (typeof data === 'string') {
+                            console.log("I dati sono una stringa, tentativo di parse");
+                            try {
+                                const parsedData = JSON.parse(data);
+                                if (Array.isArray(parsedData)) {
+                                    prenotazioni = parsedData;
+                                }
+                            } catch (e) {
+                                console.error("Errore nel parsing della stringa:", e);
+                            }
+                        }
+
+                        if (prenotazioni) {
+                            console.log("Prenotazioni valide trovate:", prenotazioni);
+                            setBookings(prenotazioni);
+                            setError(null);
                         } else {
-                            console.error("Struttura dati ricevuta:", data);
-                            setError("Formato dati non valido");
+                            console.error("Nessuna prenotazione valida trovata nei dati:", data);
+                            setBookings([]);
+                            setError("Errore nel formato dei dati ricevuti");
                         }
                     })
                     .catch(error => {
                         console.error("Errore nel recupero dei dati:", error);
-                        setError(error.message);
+                        setBookings([]);
+                        setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
                     });
             }, []);
 
@@ -81,11 +104,19 @@
             const getBookingForDate = (date) => {
                 const dateString = date.toISOString().split('T')[0];
                 console.log("Cercando prenotazioni per data:", dateString);
+                console.log("Totale prenotazioni disponibili:", bookings.length);
+                
                 const found = bookings.filter(booking => {
-                    console.log("Confronto con:", booking.date || booking.DataPrenotazione);
-                    return (booking.date === dateString || booking.DataPrenotazione === dateString);
+                    const bookingDate = booking.date || booking.DataPrenotazione;
+                    console.log("Confronto date:", {
+                        cercata: dateString,
+                        prenotazione: bookingDate,
+                        prenotazioneCompleta: booking
+                    });
+                    return bookingDate === dateString;
                 });
-                console.log("Prenotazioni trovate:", found);
+                
+                console.log("Prenotazioni trovate per", dateString, ":", found);
                 return found;
             };
 
@@ -98,8 +129,8 @@
             return (
                 <div className="min-h-screen bg-gray-50 p-4">
                     {error && (
-                        <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 text-red-700 rounded">
-                            Errore: {error}
+                        <div className="max-w-4xl mx-auto mb-4 p-4 bg-yellow-100 text-yellow-700 rounded">
+                            {error}
                         </div>
                     )}
                     <div className="max-w-4xl mx-auto bg-white shadow rounded-lg">
