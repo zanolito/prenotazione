@@ -25,7 +25,7 @@
             const [error, setError] = React.useState(null);
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-            // URL del tuo Google Apps Script
+            // URL del tuo Google Apps Script esistente
             const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
 
             React.useEffect(() => {
@@ -41,9 +41,13 @@
                     })
                     .then(data => {
                         console.log("Dati ricevuti:", data);
-                        if (Array.isArray(data)) {
+                        if (data && data.status === 'success' && Array.isArray(data.data)) {
+                            setBookings(data.data);
+                        } else if (Array.isArray(data)) {
+                            // Fallback per il formato dati esistente
                             setBookings(data);
                         } else {
+                            console.error("Struttura dati ricevuta:", data);
                             setError("Formato dati non valido");
                         }
                     })
@@ -76,7 +80,13 @@
 
             const getBookingForDate = (date) => {
                 const dateString = date.toISOString().split('T')[0];
-                return bookings.filter(booking => booking.date === dateString);
+                console.log("Cercando prenotazioni per data:", dateString);
+                const found = bookings.filter(booking => {
+                    console.log("Confronto con:", booking.date || booking.DataPrenotazione);
+                    return (booking.date === dateString || booking.DataPrenotazione === dateString);
+                });
+                console.log("Prenotazioni trovate:", found);
+                return found;
             };
 
             const changeMonth = (direction) => {
@@ -125,8 +135,12 @@
                                             <div className="font-bold">{date.getDate()}</div>
                                             {getBookingForDate(date).map((booking, i) => (
                                                 <div key={i} className="text-sm p-1 mt-1 bg-purple-100 rounded">
-                                                    <div className="font-semibold">{booking.startTime} - {booking.endTime}</div>
-                                                    <div className="text-purple-600">{booking.reason}</div>
+                                                    <div className="font-semibold">
+                                                        {booking.startTime || booking.OraInizio} - {booking.endTime || booking.OraFine}
+                                                    </div>
+                                                    <div className="text-purple-600">
+                                                        {booking.reason || booking.MotivoPrenotazione}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
