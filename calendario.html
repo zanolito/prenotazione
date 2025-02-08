@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Prenotazioni Aula Teatro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React e ReactDOM -->
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel per JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .calendar-container {
+            min-height: 100vh;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Componenti Lucide che useremo
+        const { ChevronLeft, ChevronRight, Clock, Calendar } = lucide;
+
+        // URL del tuo Google Apps Script (sostituisci con il tuo URL)
+        const SCRIPT_URL = 'INSERISCI_QUI_IL_TUO_URL_DELLO_SCRIPT';
+
+        // Componente Calendario
+        function CalendarApp() {
+            const [events, setEvents] = React.useState([]);
+            const [currentDate, setCurrentDate] = React.useState(new Date());
+            const [selectedDate, setSelectedDate] = React.useState(null);
+            const [showEventDetails, setShowEventDetails] = React.useState(false);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+
+            // Array dei giorni della settimana partendo da Lunedì
+            const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
+            // Carica i dati dal Google Script
+            React.useEffect(() => {
+                fetchEvents();
+            }, []);
+
+            const fetchEvents = async () => {
+                try {
+                    setLoading(true);
+                    const response = await fetch(SCRIPT_URL);
+                    if (!response.ok) throw new Error('Errore nel caricamento dei dati');
+                    const data = await response.json();
+                    setEvents(data);
+                    setError(null);
+                } catch (err) {
+                    setError('Errore nel caricamento degli eventi. Riprova più tardi.');
+                    console.error('Errore:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // Funzione per generare i giorni del mese
+            const generateDays = () => {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                
+                let startPadding = firstDay.getDay() - 1;
+                if (startPadding === -1) startPadding = 6;
+
+                const days = [];
+                
+                for (let i = 0; i < startPadding; i++) {
+                    days.push(null);
+                }
+                
+                for (let i = 1; i <= lastDay.getDate(); i++) {
+                    days.push(new Date(year, month, i));
+                }
+                
+                return days;
+            };
+
+            // Funzione per cambiare mese
+            const changeMonth = (direction) => {
+                const newDate = new Date(currentDate);
+                newDate.setMonth(currentDate.getMonth() + direction);
+                setCurrentDate(newDate);
+            };
+
+            // Funzione per ottenere gli eventi di una data specifica
+            const getEventsForDate = (date) => {
+                if (!date) return [];
+                const dateStr = date.toISOString().split('T')[0];
+                return events.filter(event => event.date === dateStr);
+            };
+
+            // Funzione per formattare la data in italiano
+            const formatDate = (date) => {
+                if (!date) return '';
+                return date.toLocaleDateString('it-IT', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Caricamento calendario...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (error) {
+                return (
+                    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                        <div className="text-center text-red-600">
+                            <p>{error}</p>
+                            <button 
+                                onClick={fetchEvents}
+                                className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                            >
+                                Riprova
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                // Il resto del codice del calendario rimane uguale a quello che ti ho mostrato prima
+                // ... [inserirò il resto nella prossima risposta per non superare il limite di caratteri]
+            );
+        }
+
+        // Rendering dell'applicazione
+        ReactDOM.render(<CalendarApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
