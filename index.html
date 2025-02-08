@@ -253,9 +253,11 @@
         }
 
         function openCalendar() {
-    const scriptUrl = ScriptApp.getService().getUrl();
-    window.open(scriptUrl + '?page=calendar', '_blank');
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.split('?')[0];  // Rimuove eventuali parametri esistenti
+    window.open(baseUrl + '?page=calendar', '_blank');
 }
+
 
     </script>
 </body>
