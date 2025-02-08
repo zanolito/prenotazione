@@ -25,14 +25,35 @@
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
             // URL del Google Apps Script
-const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec";
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec";
 
             // Funzione per recuperare i dati dal Google Apps Script
             React.useEffect(() => {
-                fetch(scriptUrl)
-                    .then(response => response.json())
-                    .then(data => setBookings(data))
-                    .catch(error => console.error("Errore nel caricamento dei dati:", error));
+                console.log("Tentativo di recupero dati da:", scriptUrl);
+                fetch(scriptUrl, {
+                    method: 'GET',
+                    mode: 'cors',  // Gestione per richieste cross-origin
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Errore nella risposta del server');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Dati ricevuti dal server:", data);
+                    if (Array.isArray(data)) {
+                        setBookings(data);
+                    } else {
+                        console.error("I dati ricevuti non sono in formato array:", data);
+                    }
+                })
+                .catch(error => {
+                    console.error("Errore nel caricamento dei dati:", error);
+                });
             }, []);
 
             const generateDays = () => {
@@ -59,7 +80,10 @@ const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_r
 
             const getBookingForDate = (date) => {
                 const dateAsString = date.toISOString().split('T')[0];
-                return bookings.filter(booking => booking.date === dateAsString);
+                console.log("Cercando prenotazioni per la data:", dateAsString);
+                const foundBookings = bookings.filter(booking => booking.date === dateAsString);
+                console.log("Prenotazioni trovate:", foundBookings);
+                return foundBookings;
             };
 
             const changeMonth = (direction) => {
@@ -91,7 +115,7 @@ const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_r
                                 <React.Fragment key={index}>
                                     {date ? (
                                         <div className="p-2 border rounded">
-                                            <div className="font-bold">{date.getDate()}</div>
+                                            <div>{date.getDate()}</div>
                                             {getBookingForDate(date).map((booking, i) => (
                                                 <div key={i} className="text-sm text-purple-500 mt-1">
                                                     <div><strong>{booking.startTime} - {booking.endTime}</strong></div>
