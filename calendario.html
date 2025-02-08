@@ -22,68 +22,75 @@
         function CalendarApp() {
             const [currentDate, setCurrentDate] = React.useState(new Date());
             const [bookings, setBookings] = React.useState([]);
+            const [error, setError] = React.useState(null);
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-            // URL del Google Apps Script
+            // URL del tuo Google Apps Script (assicurati che sia l'URL corretto del deployment)
             const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec";
 
-            // Funzione per recuperare i dati dal Google Apps Script
+            // Funzione per recuperare i dati
             React.useEffect(() => {
-                console.log("Tentativo di recupero dati da:", scriptUrl);
-                fetch(scriptUrl, {
-                    method: 'GET',
-                    mode: 'cors',  // Gestione per richieste cross-origin
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nella risposta del server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Dati ricevuti dal server:", data);
-                    if (Array.isArray(data)) {
-                        setBookings(data);
-                    } else {
-                        console.error("I dati ricevuti non sono in formato array:", data);
-                    }
-                })
-                .catch(error => {
-                    console.error("Errore nel caricamento dei dati:", error);
-                });
+                console.log("Iniziando il recupero dei dati...");
+                console.log("URL dello script:", scriptUrl);
+
+                fetch(scriptUrl)
+                    .then(response => {
+                        console.log("Risposta ricevuta:", response);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Dati ricevuti:", data);
+                        if (Array.isArray(data)) {
+                            console.log("Numero di prenotazioni ricevute:", data.length);
+                            setBookings(data);
+                        } else {
+                            console.error("I dati ricevuti non sono un array:", data);
+                            setError("Formato dati non valido");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Errore nel recupero dei dati:", error);
+                        setError(error.message);
+                    });
             }, []);
 
             const generateDays = () => {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
-
+                
+                // Ottieni il primo giorno del mese
                 const firstDay = new Date(year, month, 1);
+                // Ottieni l'ultimo giorno del mese
                 const lastDay = new Date(year, month + 1, 0);
-
+                
                 let days = [];
-
-                // Giorni vuoti prima dell'inizio del mese
-                for (let i = 0; i < firstDay.getDay(); i++) {
+                
+                // Aggiungi giorni vuoti fino al primo giorno del mese
+                const firstDayOfWeek = firstDay.getDay() || 7; // Converti 0 (domenica) in 7
+                for (let i = 1; i < firstDayOfWeek; i++) {
                     days.push(null);
                 }
-
-                // Giorni del mese
+                
+                // Aggiungi i giorni del mese
                 for (let i = 1; i <= lastDay.getDate(); i++) {
                     days.push(new Date(year, month, i));
                 }
-
+                
                 return days;
             };
 
             const getBookingForDate = (date) => {
-                const dateAsString = date.toISOString().split('T')[0];
-                console.log("Cercando prenotazioni per la data:", dateAsString);
-                const foundBookings = bookings.filter(booking => booking.date === dateAsString);
-                console.log("Prenotazioni trovate:", foundBookings);
-                return foundBookings;
+                const dateString = date.toISOString().split('T')[0];
+                console.log("Cercando prenotazioni per:", dateString);
+                const dayBookings = bookings.filter(booking => {
+                    console.log("Confronto con prenotazione:", booking.date);
+                    return booking.date === dateString;
+                });
+                console.log("Prenotazioni trovate:", dayBookings);
+                return dayBookings;
             };
 
             const changeMonth = (direction) => {
@@ -94,39 +101,51 @@
 
             return (
                 <div className="min-h-screen bg-gray-50 p-4">
+                    {error && (
+                        <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 text-red-700 rounded">
+                            Errore: {error}
+                        </div>
+                    )}
                     <div className="max-w-4xl mx-auto bg-white shadow rounded-lg">
-                        {/* Intestazione */}
                         <div className="p-4 bg-purple-500 text-white flex justify-between items-center">
-                            <button onClick={() => changeMonth(-1)}>◀</button>
-                            <h1>{currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}</h1>
-                            <button onClick={() => changeMonth(1)}>▶</button>
+                            <button 
+                                onClick={() => changeMonth(-1)}
+                                className="px-4 py-2 hover:bg-purple-600 rounded"
+                            >
+                                ◀
+                            </button>
+                            <h1 className="text-xl font-bold">
+                                {currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}
+                            </h1>
+                            <button 
+                                onClick={() => changeMonth(1)}
+                                className="px-4 py-2 hover:bg-purple-600 rounded"
+                            >
+                                ▶
+                            </button>
                         </div>
 
-                        {/* Giorni della settimana */}
-                        <div className="grid grid-cols-7 text-center font-bold">
-                            {weekDays.map((day) => (
-                                <div key={day}>{day}</div>
+                        <div className="grid grid-cols-7 gap-px bg-gray-200">
+                            {weekDays.map(day => (
+                                <div key={day} className="bg-gray-100 p-2 text-center font-bold">
+                                    {day}
+                                </div>
                             ))}
-                        </div>
-
-                        {/* Giorni del calendario */}
-                        <div className="grid grid-cols-7 gap-2">
+                            
                             {generateDays().map((date, index) => (
-                                <React.Fragment key={index}>
+                                <div key={index} className="bg-white p-2 min-h-[100px] border">
                                     {date ? (
-                                        <div className="p-2 border rounded">
-                                            <div>{date.getDate()}</div>
+                                        <>
+                                            <div className="font-bold">{date.getDate()}</div>
                                             {getBookingForDate(date).map((booking, i) => (
-                                                <div key={i} className="text-sm text-purple-500 mt-1">
-                                                    <div><strong>{booking.startTime} - {booking.endTime}</strong></div>
-                                                    <div>{booking.reason}</div>
+                                                <div key={i} className="text-sm p-1 mt-1 bg-purple-100 rounded">
+                                                    <div className="font-semibold">{booking.startTime} - {booking.endTime}</div>
+                                                    <div className="text-purple-600">{booking.reason}</div>
                                                 </div>
                                             ))}
-                                        </div>
-                                    ) : (
-                                        <div></div> // Giorno vuoto
-                                    )}
-                                </React.Fragment>
+                                        </>
+                                    ) : null}
+                                </div>
                             ))}
                         </div>
                     </div>
