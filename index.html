@@ -253,8 +253,10 @@
         }
 
         function openCalendar() {
-            window.open('?page=calendar', '_blank');
-        }
+    const scriptUrl = ScriptApp.getService().getUrl();
+    window.open(scriptUrl + '?page=calendar', '_blank');
+}
+
     </script>
 </body>
 </html>
