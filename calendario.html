@@ -19,6 +19,14 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        // Funzione per gestire la risposta JSONP
+        window.handleGoogleResponse = function(data) {
+            console.log("Dati ricevuti via JSONP:", data);
+            if (Array.isArray(data)) {
+                setBookings(data);
+            }
+        };
+
         function CalendarApp() {
             const [currentDate, setCurrentDate] = React.useState(new Date());
             const [bookings, setBookings] = React.useState([]);
@@ -26,22 +34,32 @@
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
             // URL del tuo Google Apps Script (assicurati che sia l'URL corretto del deployment)
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec";
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
 
-            // Funzione per recuperare i dati
             React.useEffect(() => {
                 console.log("Iniziando il recupero dei dati...");
                 console.log("URL dello script:", scriptUrl);
 
-                fetch(scriptUrl)
-                    .then(response => {
-                        console.log("Risposta ricevuta:", response);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
+                fetch(scriptUrl, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    console.log("Risposta ricevuta:", response);
+                    if (response.type === 'opaque') {
+                        // Se la risposta è opaque, proviamo con JSONP
+                        const script = document.createElement('script');
+                        script.src = `${scriptUrl}?callback=handleGoogleResponse`;
+                        document.body.appendChild(script);
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data) {
                         console.log("Dati ricevuti:", data);
                         if (Array.isArray(data)) {
                             console.log("Numero di prenotazioni ricevute:", data.length);
@@ -50,31 +68,28 @@
                             console.error("I dati ricevuti non sono un array:", data);
                             setError("Formato dati non valido");
                         }
-                    })
-                    .catch(error => {
-                        console.error("Errore nel recupero dei dati:", error);
-                        setError(error.message);
-                    });
+                    }
+                })
+                .catch(error => {
+                    console.error("Errore nel recupero dei dati:", error);
+                    // Non settiamo l'errore qui perché potremmo ricevere i dati via JSONP
+                });
             }, []);
 
             const generateDays = () => {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
                 
-                // Ottieni il primo giorno del mese
                 const firstDay = new Date(year, month, 1);
-                // Ottieni l'ultimo giorno del mese
                 const lastDay = new Date(year, month + 1, 0);
                 
                 let days = [];
                 
-                // Aggiungi giorni vuoti fino al primo giorno del mese
-                const firstDayOfWeek = firstDay.getDay() || 7; // Converti 0 (domenica) in 7
+                const firstDayOfWeek = firstDay.getDay() || 7;
                 for (let i = 1; i < firstDayOfWeek; i++) {
                     days.push(null);
                 }
                 
-                // Aggiungi i giorni del mese
                 for (let i = 1; i <= lastDay.getDate(); i++) {
                     days.push(new Date(year, month, i));
                 }
