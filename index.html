@@ -147,6 +147,7 @@
     </form>
 
     <script>
+        // Gestione campo attrezzatura
         document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
@@ -171,9 +172,6 @@
         document.getElementById('DataPrenotazione').max = maxDate.toISOString().split('T')[0];
 
         // Validazione orari
-        document.getElementById('OraInizio').addEventListener('change', validateTimes);
-        document.getElementById('OraFine').addEventListener('change', validateTimes);
-
         function validateTimes() {
             const oraInizio = document.getElementById('OraInizio').value;
             const oraFine = document.getElementById('OraFine').value;
@@ -202,6 +200,9 @@
             return true;
         }
 
+        document.getElementById('OraInizio').addEventListener('change', validateTimes);
+        document.getElementById('OraFine').addEventListener('change', validateTimes);
+
         function showMessage(message, type = 'error') {
             const messageContainer = document.getElementById('messageContainer');
             messageContainer.innerHTML = `<div class="${type}">${message}</div>`;
@@ -212,82 +213,61 @@
             document.getElementById('messageContainer').innerHTML = '';
         }
 
+        // Gestione invio form
         function handleSubmit(event) {
-    event.preventDefault();
-    
-    if (!validateTimes()) {
-        return;
-    }
+            event.preventDefault();
+            
+            if (!validateTimes()) {
+                return;
+            }
 
-    const submitButton = document.getElementById('submitButton');
-    const originalButtonText = submitButton.textContent;
-    submitButton.disabled = true;
-    submitButton.textContent = 'Invio in corso...';
+            const submitButton = document.getElementById('submitButton');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Invio in corso...';
 
-    const formData = {
-        NomeInsegnante: document.getElementById('NomeInsegnante').value,
-        EmailScolastica: document.getElementById('EmailScolastica').value,
-        MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
-        DataPrenotazione: document.getElementById('DataPrenotazione').value,
-        OraInizio: document.getElementById('OraInizio').value,
-        OraFine: document.getElementById('OraFine').value,
-        AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
-        NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value,
-        Note: document.getElementById('Note').value
-    };
+            const formData = {
+                NomeInsegnante: document.getElementById('NomeInsegnante').value,
+                EmailScolastica: document.getElementById('EmailScolastica').value,
+                MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
+                DataPrenotazione: document.getElementById('DataPrenotazione').value,
+                OraInizio: document.getElementById('OraInizio').value,
+                OraFine: document.getElementById('OraFine').value,
+                AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
+                NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value,
+                Note: document.getElementById('Note').value
+            };
 
-    // Qui va inserito l'URL del tuo script Google
-    const url = 'https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec';
+            const url = 'https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec';
 
-    fetch(url, {
-        redirect: 'follow',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'text/plain',
-        },
-        mode: 'no-cors',
-        body: JSON.stringify(formData)
-    })
-    .then(() => {
-        showMessage('Prenotazione richiesta con successo! Controlla la tua email per la conferma.', 'success');
-        document.getElementById('reservationForm').reset();
-        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
-    })
-    .catch(error => {
-        showMessage(error.message || "Errore durante la prenotazione", 'error');
-    })
-    .finally(() => {
-        submitButton.disabled = false;
-        submitButton.textContent = originalButtonText;
-    });
-}
-
-
-            google.script.run
-                .withSuccessHandler(function(response) {
-                    showMessage('Prenotazione richiesta con successo! Controlla la tua email per la conferma.', 'success');
-                    document.getElementById('reservationForm').reset();
-                    document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
-                })
-                .withFailureHandler(function(error) {
-                    showMessage(error.message || "Errore durante la prenotazione", 'error');
-                })
-                .withFinally(function() {
-                    submitButton.disabled = false;
-                    submitButton.textContent = originalButtonText;
-                })
-                .processForm(formData);
+            fetch(url, {
+                redirect: 'follow',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                mode: 'no-cors',
+                body: JSON.stringify(formData)
+            })
+            .then(() => {
+                showMessage('Prenotazione richiesta con successo! Controlla la tua email per la conferma.', 'success');
+                document.getElementById('reservationForm').reset();
+                document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
+            })
+            .catch(error => {
+                showMessage(error.message || "Errore durante la prenotazione", 'error');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            });
         }
-<button id="viewCalendarBtn" onclick="openCalendar()">Visualizza Calendario Prenotazioni</button>
 
-<script>
+        // Funzione per aprire il calendario
         function openCalendar() {
-    // Usa direttamente l'URL del tuo script Google
-    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec';
-    window.open(scriptUrl + '?page=calendar', '_blank');
-}
-
-
+            const scriptUrl = 'https://script.google.com/macros/s/AKfycbzFCLz2gHwm_kkB_DRd_rOlCZ8dPVnAdYqy1LKgJS29ZtL_o1zr0EAcrprnMyQuws-m/exec';
+            window.open(scriptUrl + '?page=calendar', '_blank');
+        }
     </script>
 </body>
 </html>
