@@ -25,59 +25,37 @@
             const [error, setError] = React.useState(null);
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-            // URL del tuo Google Apps Script esistente
-            const scriptUrl = "hhttps://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec;
 
             React.useEffect(() => {
                 console.log("Iniziando il recupero dei dati...");
                 
-                fetch(scriptUrl)
-                    .then(response => {
-                        console.log("Risposta ricevuta:", response);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("Dati ricevuti grezzi:", data);
-                        console.log("Tipo dei dati ricevuti:", typeof data);
-                        
-                        let prenotazioni = null;
-                        
-                        if (Array.isArray(data)) {
-                            console.log("I dati sono un array diretto");
-                            prenotazioni = data;
-                        } else if (data && Array.isArray(data.data)) {
-                            console.log("I dati sono nell'oggetto data.data");
-                            prenotazioni = data.data;
-                        } else if (typeof data === 'string') {
-                            console.log("I dati sono una stringa, tentativo di parse");
-                            try {
-                                const parsedData = JSON.parse(data);
-                                if (Array.isArray(parsedData)) {
-                                    prenotazioni = parsedData;
-                                }
-                            } catch (e) {
-                                console.error("Errore nel parsing della stringa:", e);
-                            }
-                        }
-
-                        if (prenotazioni) {
-                            console.log("Prenotazioni valide trovate:", prenotazioni);
-                            setBookings(prenotazioni);
-                            setError(null);
-                        } else {
-                            console.error("Nessuna prenotazione valida trovata nei dati:", data);
-                            setBookings([]);
-                            setError("Errore nel formato dei dati ricevuti");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Errore nel recupero dei dati:", error);
+                // Creiamo una funzione callback globale
+                window.handleJsonpResponse = function(data) {
+                    console.log("Dati ricevuti via JSONP:", data);
+                    if (Array.isArray(data)) {
+                        setBookings(data);
+                        setError(null);
+                    } else if (data && Array.isArray(data.data)) {
+                        setBookings(data.data);
+                        setError(null);
+                    } else {
+                        console.error("Formato dati non valido:", data);
                         setBookings([]);
-                        setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
-                    });
+                        setError("Errore nel formato dei dati");
+                    }
+                };
+
+                // Creiamo e aggiungiamo lo script JSONP
+                const script = document.createElement('script');
+                script.src = `${scriptUrl}?callback=handleJsonpResponse`;
+                document.body.appendChild(script);
+
+                // Pulizia
+                return () => {
+                    document.body.removeChild(script);
+                    delete window.handleJsonpResponse;
+                };
             }, []);
 
             const generateDays = () => {
@@ -103,21 +81,10 @@
 
             const getBookingForDate = (date) => {
                 const dateString = date.toISOString().split('T')[0];
-                console.log("Cercando prenotazioni per data:", dateString);
-                console.log("Totale prenotazioni disponibili:", bookings.length);
-                
-                const found = bookings.filter(booking => {
+                return bookings.filter(booking => {
                     const bookingDate = booking.date || booking.DataPrenotazione;
-                    console.log("Confronto date:", {
-                        cercata: dateString,
-                        prenotazione: bookingDate,
-                        prenotazioneCompleta: booking
-                    });
                     return bookingDate === dateString;
                 });
-                
-                console.log("Prenotazioni trovate per", dateString, ":", found);
-                return found;
             };
 
             const changeMonth = (direction) => {
