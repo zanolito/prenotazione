@@ -21,7 +21,19 @@
     <script type="text/babel">
         function CalendarApp() {
             const [currentDate, setCurrentDate] = React.useState(new Date());
+            const [bookings, setBookings] = React.useState([]);
             const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+
+            // URL del Google Apps Script
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbz3KcX2S-tY-J01i0LWNppUiYd5yUB93B860HdWLCfh0n_Xn9FT41e4AIFZIL7pvV8o/exec";
+
+            // Funzione per recuperare i dati dal Google Apps Script
+            React.useEffect(() => {
+                fetch(scriptUrl)
+                    .then(response => response.json())
+                    .then(data => setBookings(data))
+                    .catch(error => console.error("Errore nel caricamento dei dati:", error));
+            }, []);
 
             const generateDays = () => {
                 const year = currentDate.getFullYear();
@@ -43,6 +55,11 @@
                 }
 
                 return days;
+            };
+
+            const getBookingForDate = (date) => {
+                const dateAsString = date.toISOString().split('T')[0];
+                return bookings.filter(booking => booking.date === dateAsString);
             };
 
             const changeMonth = (direction) => {
@@ -74,7 +91,13 @@
                                 <React.Fragment key={index}>
                                     {date ? (
                                         <div className="p-2 border rounded">
-                                            {date.getDate()}
+                                            <div className="font-bold">{date.getDate()}</div>
+                                            {getBookingForDate(date).map((booking, i) => (
+                                                <div key={i} className="text-sm text-purple-500 mt-1">
+                                                    <div><strong>{booking.startTime} - {booking.endTime}</strong></div>
+                                                    <div>{booking.reason}</div>
+                                                </div>
+                                            ))}
                                         </div>
                                     ) : (
                                         <div></div> // Giorno vuoto
