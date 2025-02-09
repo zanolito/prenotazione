@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prenotazione Aula Teatro</title>
     <style>
+        .calendar-button-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.calendar-button {
+    background-color: #2196F3;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    width: auto;
+    margin-bottom: 20px;
+}
+
+.calendar-button:hover {
+    background-color: #1976D2;
+}
+
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
@@ -53,6 +75,12 @@
 </head>
 <body>
     <h1>Prenotazione Aula Teatro</h1>
+    <div class="calendar-button-container">
+    <button onclick="window.open('calendario.html', '_blank')" class="calendar-button">
+        Visualizza Calendario Prenotazioni
+    </button>
+</div>
+
     <form id="reservationForm" onsubmit="sendData(event)">
         <div class="form-group">
             <label for="NomeInsegnante">Nome Insegnante:</label>
