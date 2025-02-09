@@ -2,224 +2,231 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calendario Prenotazioni</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React e ReactDOM -->
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel per JSX -->
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-
-    <!-- Stili specifici per mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Prenotazioni Aula Teatro</title>
     <style>
-        @media (max-width: 640px) {
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .current-month {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            min-height: 120px;
+            padding: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            margin-bottom: 5px;
+        }
+
+        .day-number {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .event {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196F3;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .event-time {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .event-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .other-month {
+            background-color: #f9f9f9;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
             .calendar-grid {
-                font-size: 0.8rem;
+                grid-template-columns: repeat(1, 1fr);
             }
-            .calendar-cell {
-                padding: 0.25rem !important;
+
+            .calendar-day {
+                min-height: auto;
             }
-            .booking-card {
-                font-size: 0.7rem;
+
+            .day-header {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <div class="calendar-header">
+            <div class="month-nav">
+                <button class="nav-btn" onclick="navigateMonth(-1)">←</button>
+                <span class="current-month" id="currentMonth"></span>
+                <button class="nav-btn" onclick="navigateMonth(1)">→</button>
+            </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
 
-    <script type="text/babel">
-        function CalendarApp() {
-            const [currentDate, setCurrentDate] = React.useState(new Date());
-            const [bookings, setBookings] = React.useState([]);
-            const [error, setError] = React.useState(null);
-            const [loading, setLoading] = React.useState(true);
-            const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+    <script>
+        let currentDate = new Date();
+        let prenotazioni = [];
 
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbwKx2ozHtJBhxo97iTCarlzpHuC0Q91zQdsdw40JACPS7cxkMVNauYuRQ_04ty0ZPIr/exec";
+        const DAYS = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+        const MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                       'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 
-            React.useEffect(() => {
-                console.log("Iniziando il recupero dei dati...");
-                setLoading(true);
-                
-                fetch(scriptUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(response => {
-                    console.log("Dati ricevuti:", response);
-                    
-                    if (!response) {
-                        throw new Error("Nessun dato ricevuto");
-                    }
-
-                    if (response.error) {
-                        throw new Error(response.error);
-                    }
-
-                    let bookingsData = [];
-                    
-                    if (response.status === 'success' && Array.isArray(response.data)) {
-                        bookingsData = response.data;
-                    } else if (Array.isArray(response)) {
-                        bookingsData = response;
-                    } else if (response.data && Array.isArray(response.data)) {
-                        bookingsData = response.data;
-                    } else {
-                        console.log("Risposta non riconosciuta:", response);
-                        throw new Error("Formato dati non riconosciuto");
-                    }
-
-                    // Validazione dei dati
-                    bookingsData = bookingsData.filter(booking => 
-                        booking && 
-                        booking.date && 
-                        booking.startTime && 
-                        booking.endTime
-                    );
-
-                    console.log("Prenotazioni filtrate:", bookingsData);
-                    setBookings(bookingsData);
-                    setError(null);
-                })
-                .catch(error => {
-                    console.error("Errore nel recupero dei dati:", error);
-                    setBookings([]);
-                    setError(`Errore nel caricamento delle prenotazioni: ${error.message}`);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-            }, []);
-
-            const generateDays = () => {
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                
-                const firstDay = new Date(year, month, 1);
-                const lastDay = new Date(year, month + 1, 0);
-                
-                let days = [];
-                
-                const firstDayOfWeek = firstDay.getDay() || 7;
-                for (let i = 1; i < firstDayOfWeek; i++) {
-                    days.push(null);
-                }
-                
-                for (let i = 1; i <= lastDay.getDate(); i++) {
-                    days.push(new Date(year, month, i));
-                }
-                
-                return days;
-            };
-
-            const getBookingForDate = (date) => {
-                if (!date || !bookings.length) return [];
-                
-                const dateString = date.toISOString().split('T')[0];
-                return bookings.filter(booking => booking.date === dateString);
-            };
-
-            const changeMonth = (direction) => {
-                const newDate = new Date(currentDate);
-                newDate.setMonth(currentDate.getMonth() + direction);
-                setCurrentDate(newDate);
-            };
-
-            const formatTime = (time) => {
-                if (!time) return '';
-                if (time.includes(':')) return time;
-                try {
-                    const [hours, minutes] = time.split('.');
-                    return `${hours.padStart(2, '0')}:${(minutes || '00').padStart(2, '0')}`;
-                } catch(error) {
-                    return time;
-                }
-            };
-
-            return (
-                <div className="min-h-screen bg-gray-50 p-2 sm:p-4">
-                    {loading && (
-                        <div className="max-w-4xl mx-auto mb-2 sm:mb-4 p-2 sm:p-4 bg-blue-100 text-blue-700 rounded text-sm sm:text-base">
-                            Caricamento prenotazioni in corso...
-                        </div>
-                    )}
-                    {error && (
-                        <div className="max-w-4xl mx-auto mb-2 sm:mb-4 p-2 sm:p-4 bg-yellow-100 text-yellow-700 rounded text-sm sm:text-base">
-                            {error}
-                        </div>
-                    )}
-                    <div className="max-w-4xl mx-auto bg-white shadow rounded-lg">
-                        <div className="p-2 sm:p-4 bg-purple-500 text-white flex justify-between items-center">
-                            <button 
-                                onClick={() => changeMonth(-1)}
-                                className="px-2 sm:px-4 py-1 sm:py-2 hover:bg-purple-600 rounded text-sm sm:text-base"
-                            >
-                                ◀
-                            </button>
-                            <h1 className="text-base sm:text-xl font-bold">
-                                {currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}
-                            </h1>
-                            <button 
-                                onClick={() => changeMonth(1)}
-                                className="px-2 sm:px-4 py-1 sm:py-2 hover:bg-purple-600 rounded text-sm sm:text-base"
-                            >
-                                ▶
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-7 gap-px bg-gray-200 calendar-grid">
-                            {weekDays.map(day => (
-                                <div key={day} className="bg-gray-100 p-1 sm:p-2 text-center font-bold text-xs sm:text-base">
-                                    {day}
-                                </div>
-                            ))}
-                            
-                            {generateDays().map((date, index) => (
-                                <div key={index} className="bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] border calendar-cell">
-                                    {date && (
-                                        <div>
-                                            <div className="font-bold text-xs sm:text-base">
-                                                {date.getDate()}
-                                            </div>
-                                            {getBookingForDate(date).map((booking, i) => (
-                                                <div key={i} className="text-xs sm:text-sm p-0.5 sm:p-1 mt-0.5 sm:mt-1 bg-purple-100 rounded booking-card">
-                                                    <div className="font-semibold">
-                                                        {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
-                                                    </div>
-                                                    <div className="text-purple-600">
-                                                        {booking.reason}
-                                                    </div>
-                                                    <div className="text-purple-400 text-xs hidden sm:block">
-                                                        {booking.teacherName}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            );
+        function loadPrenotazioni() {
+            google.script.run
+                .withSuccessHandler(onPrenotazioniLoaded)
+                .getPrenotazioni();
         }
 
-        ReactDOM.render(<CalendarApp />, document.getElementById('root'));
+        function onPrenotazioniLoaded(data) {
+            prenotazioni = data;
+            renderCalendar();
+        }
+
+        function navigateMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthLabel = document.getElementById('currentMonth');
+            
+            // Aggiorna l'etichetta del mese
+            monthLabel.textContent = `${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+            // Svuota il calendario
+            grid.innerHTML = '';
+
+            // Aggiungi intestazioni giorni
+            DAYS.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Calcola il primo giorno del mese
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const startingDay = firstDay.getDay();
+
+            // Calcola l'ultimo giorno del mese
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            const totalDays = lastDay.getDate();
+
+            // Aggiungi celle vuote per i giorni prima dell'inizio del mese
+            for (let i = 0; i < startingDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+
+            // Aggiungi i giorni del mese
+            for (let day = 1; day <= totalDays; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                // Cerca prenotazioni per questo giorno
+                const currentDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayEvents = prenotazioni.filter(p => p.data === currentDateStr);
+
+                dayEvents.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'event';
+                    eventDiv.innerHTML = `
+                        <div class="event-time">${event.oraInizio} - ${event.oraFine}</div>
+                        <div class="event-title">${event.motivoPrenotazione}</div>
+                    `;
+                    dayCell.appendChild(eventDiv);
+                });
+
+                grid.appendChild(dayCell);
+            }
+        }
+
+        // Inizializza il calendario
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+            loadPrenotazioni();
+        });
     </script>
 </body>
 </html>
