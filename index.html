@@ -1,32 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prenotazione Aula Teatro</title>
     <style>
-        .calendar-button-container {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.calendar-button {
-    background-color: #2196F3;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-    width: auto;
-    margin-bottom: 20px;
-}
-
-.calendar-button:hover {
-    background-color: #1976D2;
-}
-
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
@@ -34,20 +13,26 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 30px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #666;
         }
-        input, select, textarea {
+
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 8px;
             margin-bottom: 10px;
@@ -55,6 +40,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -65,54 +51,59 @@
             width: 100%;
             font-size: 16px;
         }
+
         button:hover {
             background-color: #45a049;
         }
+
         .hidden {
             display: none;
         }
+
+        .calendar-button {
+            margin-top: 20px;
+            background-color: #2196F3;
+        }
+
+        .calendar-button:hover {
+            background-color: #1976D2;
+        }
     </style>
 </head>
+
 <body>
     <h1>Prenotazione Aula Teatro</h1>
-    <div class="calendar-button-container">
-    <button onclick="window.open('https://script.google.com/macros/s/AKfycbylRra8J1bHN3_4OwAFXQNnFpyfzJKwGW4uh9OC414Kvrruo2ilX3-gUVhz5sg7-00/exec', '_blank')" class="calendar-button">
 
+    <!-- Pulsante per visualizzare il calendario -->
+    <button onclick="apriCalendario()" class="calendar-button">
         Visualizza Calendario Prenotazioni
     </button>
-</div>
 
     <form id="reservationForm" onsubmit="sendData(event)">
         <div class="form-group">
             <label for="NomeInsegnante">Nome Insegnante:</label>
             <input type="text" id="NomeInsegnante" required>
         </div>
-
         <div class="form-group">
             <label for="EmailScolastica">Email Scolastica:</label>
             <input type="email" id="EmailScolastica" required>
         </div>
-
         <div class="form-group">
             <label for="MotivoPrenotazione">Motivo Prenotazione:</label>
             <input type="text" id="MotivoPrenotazione" required>
         </div>
-
         <div class="form-group">
             <label for="DataPrenotazione">Data Prenotazione:</label>
             <input type="date" id="DataPrenotazione" required min="">
         </div>
-
         <div class="form-group">
             <label for="OraInizio">Ora Inizio:</label>
             <input type="time" id="OraInizio" required>
         </div>
-
         <div class="form-group">
             <label for="OraFine">Ora Fine:</label>
             <input type="time" id="OraFine" required>
         </div>
-
         <div class="form-group">
             <label for="AttrezzaturaNecessaria">Attrezzatura Necessaria:</label>
             <select id="AttrezzaturaNecessaria" required>
@@ -121,32 +112,37 @@
                 <option value="Sì">Sì</option>
             </select>
         </div>
-
         <div class="form-group hidden" id="noteAttrezzaturaGroup">
             <label for="NoteAttrezzatura">Specifiche Attrezzatura (obbligatorio):</label>
             <textarea id="NoteAttrezzatura" rows="3"></textarea>
         </div>
-
         <div class="form-group">
             <label for="Note">Note Aggiuntive:</label>
             <textarea id="Note" rows="3"></textarea>
         </div>
-
         <button type="submit">Prenota</button>
     </form>
 
     <script>
+        // URL del tuo Web App Google Apps Script
+        const URL_WEB_APP = 'INSERISCI_IL_TUO_URL_DEL_WEB_APP';
+
+        // Funzione per aprire il calendario
+        function apriCalendario() {
+            window.location.href = URL_WEB_APP;
+        }
+
         // Imposta la data minima come oggi
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const today = new Date().toISOString().split("T")[0];
             document.getElementById("DataPrenotazione").setAttribute("min", today);
         });
 
         // Gestione visualizzazione campo Note Attrezzatura
-        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
+        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function () {
             const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
             const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
-            
+
             if (this.value === 'Sì') {
                 noteAttrezzaturaGroup.classList.remove('hidden');
                 noteAttrezzatura.required = true;
@@ -160,11 +156,9 @@
         // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
-
             const button = event.target.querySelector('button');
             button.textContent = 'Invio in corso...';
             button.disabled = true;
-
             const formData = {
                 NomeInsegnante: document.getElementById('NomeInsegnante').value,
                 EmailScolastica: document.getElementById('EmailScolastica').value,
@@ -177,11 +171,8 @@
                 Note: document.getElementById('Note').value || ''
             };
 
-            // Inserisci qui l'URL del tuo Web App di Google Apps Script
-            const url = 'https://script.google.com/macros/s/AKfycbz3KcX2S-tY-J01i0LWNppUiYd5yUB93B860HdWLCfh0n_Xn9FT41e4AIFZIL7pvV8o/exec';
-
             try {
-                await fetch(url, {
+                await fetch('https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbylRra8J1bHN3_4OwAFXQNnFpyfzJKwGW4uh9OC414Kvrruo2ilX3-gUVhz5sg7-00/exec', {
                     redirect: 'follow',
                     method: 'POST',
                     headers: {
@@ -190,13 +181,10 @@
                     mode: 'no-cors',
                     body: JSON.stringify(formData)
                 });
-
-                // Se arriviamo qui, consideriamo la richiesta riuscita
                 alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
                 document.getElementById('reservationForm').reset();
                 document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
             } catch (error) {
-                console.error('Errore durante l\'invio:', error);
                 alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
             } finally {
                 button.textContent = 'Prenota';
@@ -205,4 +193,5 @@
         }
     </script>
 </body>
+
 </html>
