@@ -147,7 +147,7 @@
         });
 
         // Funzione per aprire il calendario
-        async function openCalendar() {
+async function openCalendar() {
     let calendarUrl = localStorage.getItem('calendarUrl');
     
     if (!calendarUrl) {
@@ -170,34 +170,55 @@
     }
 }
 
+// Funzione per inviare i dati
+async function sendData(event) {
+    event.preventDefault();
+    const button = event.target.querySelector('.btn-prenota');
+    button.textContent = 'Invio in corso...';
+    button.disabled = true;
 
-        // Funzione per inviare i dati
-        async function sendData(event) {
-            event.preventDefault();
-            const button = event.target.querySelector('.btn-prenota');
-            button.textContent = 'Invio in corso...';
-            button.disabled = true;
+    const formData = {
+        NomeInsegnante: document.getElementById('NomeInsegnante').value,
+        EmailScolastica: document.getElementById('EmailScolastica').value,
+        MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
+        DataPrenotazione: document.getElementById('DataPrenotazione').value,
+        OraInizio: document.getElementById('OraInizio').value,
+        OraFine: document.getElementById('OraFine').value,
+        AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
+        NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value || '',
+        Note: document.getElementById('Note').value || ''
+    };
 
-            const formData = {
-                NomeInsegnante: document.getElementById('NomeInsegnante').value,
-                EmailScolastica: document.getElementById('EmailScolastica').value,
-                MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
-                DataPrenotazione: document.getElementById('DataPrenotazione').value,
-                OraInizio: document.getElementById('OraInizio').value,
-                OraFine: document.getElementById('OraFine').value,
-                AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
-                NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value || '',
-                Note: document.getElementById('Note').value || ''
-            };
+    const url = 'https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec';
 
-            const url = 'https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec';
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            body: JSON.stringify(formData)
+        });
 
-            try {
-                const data = await response.json();
+        const data = await response.json();
         
         if (data.calendarUrl) {
             localStorage.setItem('calendarUrl', data.calendarUrl);
         }
+
+        alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
+        document.getElementById('reservationForm').reset();
+        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
+
+    } catch (error) {
+        console.error('Errore durante l\'invio:', error);
+        alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
+    } finally {
+        button.textContent = 'Prenota';
+        button.disabled = false;
+    }
+}
+
 
         alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
         document.getElementById('reservationForm').reset();
