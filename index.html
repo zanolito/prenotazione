@@ -20,7 +20,6 @@
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
         const { createIcon, Calendar, ChevronLeft, ChevronRight, Clock } = lucide;
 
@@ -45,7 +44,7 @@
                     const response = await fetch(SCRIPT_URL);
                     if (!response.ok) throw new Error('Errore nel caricamento dei dati');
                     const data = await response.json();
-                    console.log('Dati ricevuti:', data); // Per debug
+                    console.log('Dati ricevuti:', data);
                     setEvents(data);
                     setError(null);
                 } catch (err) {
@@ -65,7 +64,6 @@
                 
                 let startPadding = firstDay.getDay() - 1;
                 if (startPadding === -1) startPadding = 6;
-
                 const days = [];
                 
                 for (let i = 0; i < startPadding; i++) {
@@ -158,7 +156,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div className="p-6">
                             <div className="grid grid-cols-7 mb-4">
                                 {weekDays.map(day => (
@@ -167,7 +164,6 @@
                                     </div>
                                 ))}
                             </div>
-
                             <div className="grid grid-cols-7 gap-2">
                                 {generateDays().map((date, idx) => {
                                     const dayEvents = date ? getEventsForDate(date) : [];
@@ -175,7 +171,6 @@
                                         date.getDate() === new Date().getDate() && 
                                         date.getMonth() === new Date().getMonth() && 
                                         date.getFullYear() === new Date().getFullYear();
-
                                     return (
                                         <div 
                                             key={idx}
@@ -186,7 +181,7 @@
                                             `}
                                         >
                                             {date && (
-                                                <>
+                                                <React.Fragment>
                                                     <div className="flex justify-between items-center mb-2">
                                                         <span className={`
                                                             text-sm font-medium rounded-full w-8 h-8 flex items-center justify-center
@@ -201,7 +196,6 @@
                                                             </span>
                                                         )}
                                                     </div>
-
                                                     <div className="space-y-1">
                                                         {dayEvents.map((event, eventIdx) => (
                                                             <button
@@ -222,7 +216,7 @@
                                                             </button>
                                                         ))}
                                                     </div>
-                                                </>
+                                                </React.Fragment>
                                             )}
                                         </div>
                                     );
@@ -230,7 +224,6 @@
                             </div>
                         </div>
                     </div>
-
                     {showEventDetails && selectedDate && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
                             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md">
