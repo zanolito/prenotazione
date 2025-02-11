@@ -178,15 +178,24 @@
             const url = 'https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec';
 
             try {
-                const response = await fetch(url, {
-                    redirect: 'follow',
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                    mode: 'no-cors',
-                    body: JSON.stringify(formData)
-                });
+                const data = await response.json();
+        
+        if (data.calendarUrl) {
+            localStorage.setItem('calendarUrl', data.calendarUrl);
+        }
+
+        alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
+        document.getElementById('reservationForm').reset();
+        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
+
+    } catch (error) {
+        console.error('Errore durante l\'invio:', error);
+        alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
+    } finally {
+        button.textContent = 'Prenota';
+        button.disabled = false;
+    }
+            }
 
                 // Se arriviamo qui, consideriamo la richiesta riuscita
                 alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
