@@ -63,6 +63,11 @@
 </head>
 <body>
     <h1>Prenotazione Aula Teatro</h1>
+
+    <!-- Pulsante calendario spostato qui -->
+    <div class="button-container" style="margin-bottom: 30px;">
+        <button type="button" id="viewCalendarBtn" onclick="openCalendar()">Visualizza Calendario Prenotazioni</button>
+    </div>
     
     <form id="reservationForm" onsubmit="sendData(event)">
         <div class="form-group">
@@ -116,7 +121,6 @@
 
         <div class="button-container">
             <button type="submit" class="btn-prenota">Prenota</button>
-            <button type="button" id="viewCalendarBtn" onclick="openCalendar()">Visualizza Calendario</button>
         </div>
     </form>
 
