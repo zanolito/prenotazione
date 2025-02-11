@@ -147,14 +147,29 @@
         });
 
         // Funzione per aprire il calendario
-        function openCalendar() {
-            const calendarUrl = localStorage.getItem('calendarUrl');
-            if (calendarUrl) {
-                window.open(calendarUrl, '_blank');
-            } else {
-                alert('Il link al calendario non è ancora disponibile. Effettua prima una prenotazione.');
+        async function openCalendar() {
+    let calendarUrl = localStorage.getItem('calendarUrl');
+    
+    if (!calendarUrl) {
+        try {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec?action=getCalendarUrl');
+            const data = await response.json();
+            if (data.url) {
+                calendarUrl = data.url;
+                localStorage.setItem('calendarUrl', calendarUrl);
             }
+        } catch (error) {
+            console.error('Errore nel recupero URL calendario:', error);
         }
+    }
+    
+    if (calendarUrl) {
+        window.open(calendarUrl, '_blank');
+    } else {
+        alert('Il link al calendario non è ancora disponibile. Effettua prima una prenotazione.');
+    }
+}
+
 
         // Funzione per inviare i dati
         async function sendData(event) {
