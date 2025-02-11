@@ -12,19 +12,23 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
+
         h1 {
             color: #333;
             text-align: center;
             margin-bottom: 30px;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             color: #666;
         }
+
         input, select, textarea {
             width: 100%;
             padding: 8px;
@@ -33,26 +37,51 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+
         button {
-            background-color: #4CAF50;
-            color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
             font-size: 16px;
+            color: white;
+            margin-bottom: 10px;
         }
-        button:hover {
+
+        .btn-prenota {
+            background-color: #4CAF50;
+        }
+
+        .btn-prenota:hover {
             background-color: #45a049;
         }
+
+        .btn-calendario {
+            background-color: #2196F3;
+        }
+
+        .btn-calendario:hover {
+            background-color: #1976D2;
+        }
+
         .hidden {
             display: none;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .loading {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
     <h1>Prenotazione Aula Teatro</h1>
+    
     <form id="reservationForm" onsubmit="sendData(event)">
         <div class="form-group">
             <label for="NomeInsegnante">Nome Insegnante:</label>
@@ -103,7 +132,12 @@
             <textarea id="Note" rows="3"></textarea>
         </div>
 
-        <button type="submit">Prenota</button>
+        <div class="button-container">
+            <button type="submit" class="btn-prenota">Prenota</button>
+            <button type="button" class="btn-calendario" onclick="openCalendar()">
+                Visualizza Calendario
+            </button>
+        </div>
     </form>
 
     <script>
@@ -128,13 +162,22 @@
             }
         });
 
+        // Funzione per aprire il calendario
+        function openCalendar() {
+            const calendarUrl = 'CALENDAR_URL'; // Questo URL verrà fornito dal codice GS
+            window.open(calendarUrl, '_blank');
+        }
+
         // Funzione per inviare i dati
         async function sendData(event) {
             event.preventDefault();
-
-            const button = event.target.querySelector('button');
-            button.textContent = 'Invio in corso...';
-            button.disabled = true;
+            const form = event.target;
+            const submitButton = form.querySelector('.btn-prenota');
+            
+            // Disabilita il pulsante e mostra lo stato di caricamento
+            submitButton.textContent = 'Invio in corso...';
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
 
             const formData = {
                 NomeInsegnante: document.getElementById('NomeInsegnante').value,
@@ -148,7 +191,7 @@
                 Note: document.getElementById('Note').value || ''
             };
 
-            // Inserisci qui l'URL del tuo Web App di Google Apps Script
+            // URL del Web App di Google Apps Script
             const url = 'https://script.google.com/macros/s/AKfycbz3KcX2S-tY-J01i0LWNppUiYd5yUB93B860HdWLCfh0n_Xn9FT41e4AIFZIL7pvV8o/exec';
 
             try {
@@ -162,16 +205,16 @@
                     body: JSON.stringify(formData)
                 });
 
-                // Se arriviamo qui, consideriamo la richiesta riuscita
                 alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
-                document.getElementById('reservationForm').reset();
+                form.reset();
                 document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
             } catch (error) {
                 console.error('Errore durante l\'invio:', error);
                 alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
             } finally {
-                button.textContent = 'Prenota';
-                button.disabled = false;
+                submitButton.textContent = 'Prenota';
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
             }
         }
     </script>
