@@ -64,12 +64,11 @@
 <body>
     <h1>Prenotazione Aula Teatro</h1>
 
-    <!-- Pulsante calendario spostato qui -->
     <div class="button-container" style="margin-bottom: 30px;">
-        <button type="button" id="viewCalendarBtn" onclick="openCalendar()">Visualizza Calendario Prenotazioni</button>
+        <button type="button" id="viewCalendarBtn">Visualizza Calendario Prenotazioni</button>
     </div>
     
-    <form id="reservationForm" onsubmit="sendData(event)">
+    <form id="reservationForm">
         <div class="form-group">
             <label for="NomeInsegnante">Nome Insegnante:</label>
             <input type="text" id="NomeInsegnante" required>
@@ -125,124 +124,91 @@
     </form>
 
     <script>
-    // Imposta la data minima come oggi
-    document.addEventListener("DOMContentLoaded", function() {
-        const today = new Date().toISOString().split("T")[0];
-        document.getElementById("DataPrenotazione").setAttribute("min", today);
-    });
+        // Imposta la data minima come oggi
+        document.addEventListener("DOMContentLoaded", function() {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("DataPrenotazione").setAttribute("min", today);
+        });
 
-    // Gestione visualizzazione campo Note Attrezzatura
-    document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
-        const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
-        const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
-        
-        if (this.value === 'Sì') {
-            noteAttrezzaturaGroup.classList.remove('hidden');
-            noteAttrezzatura.required = true;
-        } else {
-            noteAttrezzaturaGroup.classList.add('hidden');
-            noteAttrezzatura.required = false;
-            noteAttrezzatura.value = '';
-        }
-    });
-
-    // Funzione per aprire il calendario
-    async function openCalendar() {
-        let calendarUrl = localStorage.getItem('calendarUrl');
-        
-        if (!calendarUrl) {
-            try {
-                const response = await fetch('https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec?action=getCalendarUrl');
-                const data = await response.json();
-                if (data.url) {
-                    calendarUrl = data.url;
-                    localStorage.setItem('calendarUrl', calendarUrl);
-                }
-            } catch (error) {
-                console.error('Errore nel recupero URL calendario:', error);
-            }
-        }
-        
-        if (calendarUrl) {
-            window.open(calendarUrl, '_blank');
-        } else {
-            alert('Il link al calendario non è ancora disponibile. Effettua prima una prenotazione.');
-        }
-    }
-
-    // Funzione per inviare i dati
-    async function sendData(event) {
-        event.preventDefault();
-        const button = event.target.querySelector('.btn-prenota');
-        button.textContent = 'Invio in corso...';
-        button.disabled = true;
-
-        const formData = {
-            NomeInsegnante: document.getElementById('NomeInsegnante').value,
-            EmailScolastica: document.getElementById('EmailScolastica').value,
-            MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
-            DataPrenotazione: document.getElementById('DataPrenotazione').value,
-            OraInizio: document.getElementById('OraInizio').value,
-            OraFine: document.getElementById('OraFine').value,
-            AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
-            NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value || '',
-            Note: document.getElementById('Note').value || ''
-        };
-
-        const url = 'https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec';
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain',
-                },
-                body: JSON.stringify(formData)
-            });
-
-            const data = await response.json();
+        // Gestione visualizzazione campo Note Attrezzatura
+        document.getElementById('AttrezzaturaNecessaria').addEventListener('change', function() {
+            const noteAttrezzaturaGroup = document.getElementById('noteAttrezzaturaGroup');
+            const noteAttrezzatura = document.getElementById('NoteAttrezzatura');
             
-            if (data.calendarUrl) {
-                localStorage.setItem('calendarUrl', data.calendarUrl);
+            if (this.value === 'Sì') {
+                noteAttrezzaturaGroup.classList.remove('hidden');
+                noteAttrezzatura.required = true;
+            } else {
+                noteAttrezzaturaGroup.classList.add('hidden');
+                noteAttrezzatura.required = false;
+                noteAttrezzatura.value = '';
             }
+        });
 
-            alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
-            document.getElementById('reservationForm').reset();
-            document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
-
-        } catch (error) {
-            console.error('Errore durante l\'invio:', error);
-            alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
-        } finally {
-            button.textContent = 'Prenota';
-            button.disabled = false;
-        }
-    }
-</script>
-
-
-        alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
-        document.getElementById('reservationForm').reset();
-        document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
-
-    } catch (error) {
-        console.error('Errore durante l\'invio:', error);
-        alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
-    } finally {
-        button.textContent = 'Prenota';
-        button.disabled = false;
-    }
+        // Gestione apertura calendario
+        document.getElementById('viewCalendarBtn').addEventListener('click', async function() {
+            let calendarUrl = localStorage.getItem('calendarUrl');
+            
+            if (!calendarUrl) {
+                try {
+                    const response = await fetch('https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec?action=getCalendarUrl');
+                    const data = await response.json();
+                    if (data.url) {
+                        calendarUrl = data.url;
+                        localStorage.setItem('calendarUrl', calendarUrl);
+                    }
+                } catch (error) {
+                    console.error('Errore nel recupero URL calendario:', error);
+                }
             }
+            
+            if (calendarUrl) {
+                window.open(calendarUrl, '_blank');
+            } else {
+                alert('Il link al calendario non è ancora disponibile. Effettua prima una prenotazione.');
+            }
+        });
 
-                // Se arriviamo qui, consideriamo la richiesta riuscita
+        // Gestione invio form
+        document.getElementById('reservationForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('.btn-prenota');
+            button.textContent = 'Invio in corso...';
+            button.disabled = true;
+
+            const formData = {
+                NomeInsegnante: document.getElementById('NomeInsegnante').value,
+                EmailScolastica: document.getElementById('EmailScolastica').value,
+                MotivoPrenotazione: document.getElementById('MotivoPrenotazione').value,
+                DataPrenotazione: document.getElementById('DataPrenotazione').value,
+                OraInizio: document.getElementById('OraInizio').value,
+                OraFine: document.getElementById('OraFine').value,
+                AttrezzaturaNecessaria: document.getElementById('AttrezzaturaNecessaria').value,
+                NoteAttrezzatura: document.getElementById('NoteAttrezzatura').value || '',
+                Note: document.getElementById('Note').value || ''
+            };
+
+            const url = 'https://script.google.com/macros/s/AKfycbxCV06S1XX9JZVyUeoBerQqRpQ_4daPjD7Dfo-gBOLGL0FwoSJGZ_rd9F6kEKn_P_H2/exec';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.calendarUrl) {
+                    localStorage.setItem('calendarUrl', data.calendarUrl);
+                }
+
                 alert('Prenotazione effettuata con successo! Controlla la tua email per la conferma.');
-                document.getElementById('reservationForm').reset();
+                event.target.reset();
                 document.getElementById('noteAttrezzaturaGroup').classList.add('hidden');
 
-                // Memorizza l'URL del calendario se presente nella risposta
-                if (response.calendarUrl) {
-                    localStorage.setItem('calendarUrl', response.calendarUrl);
-                }
             } catch (error) {
                 console.error('Errore durante l\'invio:', error);
                 alert('Errore durante l\'invio della prenotazione. Per favore, riprova.');
@@ -250,7 +216,7 @@
                 button.textContent = 'Prenota';
                 button.disabled = false;
             }
-        }
+        });
     </script>
 </body>
 </html>
